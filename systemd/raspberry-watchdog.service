@@ -1,0 +1,15 @@
+[Unit]
+Description=Raspberry Pi Internet Connectivity Watchdog
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/raspberry-watchdog/watchdog.py --config /etc/raspberry-watchdog/config.ini
+Restart=on-failure
+RestartSec=5
+User=pi
+SupplementaryGroups=gpio
+
+[Install]
+WantedBy=multi-user.target
