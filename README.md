@@ -66,6 +66,7 @@ Raspberry Pi上で動作するインターネット疎通監視ツール。設�
 | セクション | キー | 説明 |
 | --- | --- | --- |
 | network | host | ping先ホスト（IPまたはドメイン名） |
+| network | interface | 疎通確認に使用するNIC名（例: `eth0`）。空欄の場合はOSのルーティングに従う |
 | network | ping_count | 1回の確認で送信するping数 |
 | network | ping_timeout | ping応答待ちタイムアウト（秒） |
 | network | check_interval | 疎通確認の実行間隔（秒） |
@@ -73,6 +74,20 @@ Raspberry Pi上で動作するインターネット疎通監視ツール。設�
 | gpio | led_red_pin | 疎通NG時に点灯するLEDのBCM GPIO番号 |
 | logging | log_file | ログファイルの出力先パス |
 | logging | log_level | ログレベル（DEBUG/INFO/WARNING/ERROR） |
+
+Wi-Fiを使わず有線LANのみで疎通確認したい場合は、`interface`に有線NICのインターフェース名を設定する。
+
+```sh
+# インターフェース名の確認（例: eth0, end0 など環境により異なる）
+ip -o link show
+```
+
+```ini
+[network]
+interface = eth0
+```
+
+指定したインターフェースが存在しない、またはリンクダウンしている場合は`ping`が失敗し、通常の疎通NG時と同様に赤LED点灯・ログ記録が行われる。
 
 ## 動作確認
 

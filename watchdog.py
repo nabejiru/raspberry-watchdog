@@ -44,6 +44,7 @@ def load_config(path):
     try:
         return {
             "host": parser.get("network", "host"),
+            "interface": parser.get("network", "interface", fallback="").strip(),
             "ping_count": parser.getint("network", "ping_count", fallback=3),
             "ping_timeout": parser.getint("network", "ping_timeout", fallback=2),
             "check_interval": parser.getint("network", "check_interval", fallback=60),
@@ -70,10 +71,14 @@ def setup_logging(log_file, log_level):
     return logger
 
 
-def check_connectivity(host, count, timeout):
+def check_connectivity(host, count, timeout, interface=""):
+    cmd = ["ping", "-c", str(count), "-W", str(timeout)]
+    if interface:
+        cmd += ["-I", interface]
+    cmd.append(host)
     try:
         result = subprocess.run(
-            ["ping", "-c", str(count), "-W", str(timeout), host],
+            cmd,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=count * timeout + 5,
@@ -99,8 +104,9 @@ def main():
     red = LED(config["led_red_pin"])
 
     logger.info(
-        "watchdog started: host=%s interval=%ss green_pin=%s red_pin=%s",
+        "watchdog started: host=%s interface=%s interval=%ss green_pin=%s red_pin=%s",
         config["host"],
+        config["interface"] or "(default)",
         config["check_interval"],
         config["led_green_pin"],
         config["led_red_pin"],
@@ -110,7 +116,10 @@ def main():
     try:
         while not stop_event.is_set():
             reachable = check_connectivity(
-                config["host"], config["ping_count"], config["ping_timeout"]
+                config["host"],
+                config["ping_count"],
+                config["ping_timeout"],
+                config["interface"],
             )
 
             if reachable:
